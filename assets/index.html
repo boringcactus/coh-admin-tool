@@ -5,6 +5,7 @@
     <title>CoH Admin Tool</title>
 </head>
 <body>
+<h1>Register New User</h1>
 <form action="/create-user" method="POST">
     <p><label>
         Username
@@ -13,6 +14,19 @@
     <p><label>
         Password
         <input name="password" type="password">
+    </label></p>
+    <p><label>
+        Secret
+        <input name="secret" type="password">
+    </label></p>
+    <input type="submit">
+</form>
+<hr>
+<h1>Promote Character to GM</h1>
+<form action="/promote-user" method="POST">
+    <p><label>
+        Character Name
+        <input name="charname" type="text">
     </label></p>
     <p><label>
         Secret

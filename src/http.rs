@@ -5,7 +5,7 @@ use futures::Future;
 use serde::Deserialize;
 
 use crate::config::Config;
-use crate::db::{CreateUser, Database};
+use crate::db::{CreateUser, Database, PromoteUser};
 
 struct State {
     config: Config,
@@ -58,6 +58,38 @@ fn create_user(req: &HttpRequest<State>) -> FutureResponse<HttpResponse> {
         .responder()
 }
 
+#[derive(Deserialize)]
+struct PromoteUserFormData {
+    charname: String,
+    secret: String,
+}
+
+fn promote_user(req: &HttpRequest<State>) -> FutureResponse<HttpResponse> {
+    let req = req.clone();
+    Form::<PromoteUserFormData>::extract(&req)
+        .and_then(move |data| {
+            let result: Box<dyn futures::Future<Item=_, Error=_>> = if data.secret == req.state().config.promote_secret {
+                Box::new(req.state().db.send(PromoteUser {
+                    charname: data.charname.clone(),
+                })
+                    .from_err()
+                    .and_then(|res| {
+                        match res {
+                            Ok(_) => Ok(HttpResponse::Ok().body("Successfully promoted user")),
+                            Err(e) => {
+                                eprintln!("Error promoting user:\n    {:#?}", e);
+                                Ok(HttpResponse::InternalServerError().body("Failed to promote user"))
+                            }
+                        }
+                    }))
+            } else {
+                Box::new(futures::future::ok(HttpResponse::Unauthorized().body("Wrong secret!")))
+            };
+            result
+        })
+        .responder()
+}
+
 impl Server {
     pub fn new(config: Config, db: Addr<Database>) -> Server {
         Server {
@@ -73,6 +105,7 @@ impl Server {
         })
             .resource("/", |r| r.f(index))
             .resource("/create-user", |r| r.method(Method::POST).a(create_user))
+            .resource("/promote-user", |r| r.method(Method::POST).a(promote_user))
     }
 
     pub fn start(self) {

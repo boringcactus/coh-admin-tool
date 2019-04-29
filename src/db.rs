@@ -2,15 +2,6 @@ use actix::prelude::*;
 use odbc;
 pub use odbc::Result;
 
-pub struct CreateUser {
-    pub username: String,
-    pub password: String,
-}
-
-impl Message for CreateUser {
-    type Result = odbc::Result<()>;
-}
-
 pub struct Database {
     env: odbc::Environment<odbc::Version3>,
 }
@@ -30,6 +21,15 @@ impl Database {
     fn connect(&self) -> Result<odbc::Connection> {
         self.env.connect_with_connection_string("FILEDSN=AuthDB.dsn;")
     }
+}
+
+pub struct CreateUser {
+    pub username: String,
+    pub password: String,
+}
+
+impl Message for CreateUser {
+    type Result = odbc::Result<()>;
 }
 
 fn adler32(data: &str) -> u32 {
@@ -129,6 +129,34 @@ impl Handler<CreateUser> for Database {
                 odbc::Data(_) => {
                     panic!("insert returned data");
                 }
+            }
+        }
+
+        Ok(())
+    }
+}
+
+pub struct PromoteUser {
+    pub charname: String,
+}
+
+impl Message for PromoteUser {
+    type Result = odbc::Result<()>;
+}
+
+impl Handler<PromoteUser> for Database {
+    type Result = odbc::Result<()>;
+
+    fn handle(&mut self, msg: PromoteUser, _: &mut Self::Context) -> Self::Result {
+        let conn = self.connect()?;
+
+        let stmt = odbc::Statement::with_parent(&conn)?;
+        let stmt = stmt.bind_parameter(1, &msg.charname)?;
+        let sql = "UPDATE cohdb.dbo.Ents SET AccessLevel=10 WHERE Name = ?;";
+        match stmt.exec_direct(sql)? {
+            odbc::NoData(_) => {} // things worked
+            odbc::Data(_) => {
+                panic!("insert returned data");
             }
         }
 

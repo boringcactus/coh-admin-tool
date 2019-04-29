@@ -79,7 +79,7 @@ fn load_from_file() -> Result<Config> {
 fn save_to_file(conf: &Config) -> Result<()> {
     let mut path = env::current_exe()?;
     path.set_extension("toml");
-    fs::write(path, toml::to_vec(conf)?)?;
+    fs::write(&path, toml::to_vec(conf)?)?;
     println!("Configuration saved to {}", path.display());
     Ok(())
 }
