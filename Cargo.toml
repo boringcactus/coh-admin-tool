@@ -7,3 +7,9 @@ edition = "2018"
 [dependencies]
 odbc = "0.12.0"
 env_logger = "0.6.1"
+toml = "0.5.0"
+serde = { version = "1.0.90", features = ["derive"] }
+actix = "0.7.9"
+actix-web = "0.7.19"
+sha2 = "0.8.0"
+futures = "0.1.26"
