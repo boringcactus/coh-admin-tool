@@ -13,3 +13,4 @@ deploy:
   file: target/release/coh-admin-tool.exe
   on:
     repo: boringcactus/coh-admin-tool
+    tags: true
