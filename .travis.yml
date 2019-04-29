@@ -1,0 +1,14 @@
+os: windows
+language: rust
+rust: stable
+stage: deploy
+script:
+  - cargo test
+  - cargo build --release
+deploy:
+  provider: releases
+  api_key:
+    secure: bxhsmiTZA3raZaEW7U+UKwvwjtsXAHEpnFQ0DjdDBac7h11CfhJQQgPN8uax9d/cTm81adRfvDu707QCNcJix/5z1C47mjTeV3sh1SYCbhfWvVexmHPMz4mysKGQTbBVAjQIthZcTqOdwGVFuhmYk3IVLSeNceBeLsKFl5YoM/LPhcSDU/AgA758iyQLzPS232Z4cPwmLmOqgmkMA1xZMDUb1IXizzMol6fpGgJBLGv76T18WKDrVTj7/AU0ieZKgBpQIbijlAeD+zt9THSYFfCkfTOiGgNrLsF9eLc2mghLLMsY2qR/n0ya7Rxs9tla5E9ZIlAuOaEk6oxVNyab7nSct4S/KrVmjWXcTugGzpi/vvZ0MGbIDtK9GqKwnBVIHeQAz0buorShsALejfPNZ4B2qZPB2Wu/ooIxURM8PHJPZvxEd2ok9C7HqEbsf+yYHLty4jU93V4cr4pQmuiGxsLHChTMHp+/HCXKvGAeCEW9GxBWFrVEJF/U5Ebv65iz3dFnS49H6FtczC2P4iKc6asFpgc4vBdxJ0Mb3E/5AHciyoB0PRzZyQlhB14HJ1XK+RlWNLmSPqAOadRGGsPazwvSfXscu/rTEue/bfdA+oAUQ7oMWc6iqBrfujKWTNwWwgsbRD02zpc6bArW50xcEZZUOlzydIMai540K6eydUs=
+  file: target/release/coh-admin-tool.exe
+  on:
+    repo: boringcactus/coh-admin-tool
