@@ -111,7 +111,7 @@ impl Server {
     pub fn start(self) {
         let port = self.config.port;
         server::new(move || self.app())
-            .bind(("127.0.0.1", port))
+            .bind(("0.0.0.0", port))
             .expect(&format!("Can not bind to port {}", port))
             .start();
     }

@@ -2,8 +2,11 @@ use actix::prelude::*;
 use odbc;
 pub use odbc::Result;
 
+use crate::config::Config;
+
 pub struct Database {
     env: odbc::Environment<odbc::Version3>,
+    conn_str: String,
 }
 
 impl Actor for Database {
@@ -11,15 +14,16 @@ impl Actor for Database {
 }
 
 impl Database {
-    pub fn new() -> Result<Database> {
+    pub fn new(config: &Config) -> Result<Database> {
         let env = odbc::create_environment_v3().map_err(|e| e.unwrap())?;
         Ok(Database {
             env,
+            conn_str: config.sql_login.clone(),
         })
     }
 
     fn connect(&self) -> Result<odbc::Connection> {
-        self.env.connect_with_connection_string("FILEDSN=AuthDB.dsn;")
+        self.env.connect_with_connection_string(&self.conn_str)
     }
 }
 

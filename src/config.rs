@@ -10,6 +10,7 @@ use toml;
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Config {
+    pub sql_login: String,
     pub port: u16,
     pub register_secret: String,
     pub promote_secret: String,
@@ -60,7 +61,7 @@ fn prompt<T: FromStr>(text: &str) -> T where <T as std::str::FromStr>::Err: std:
         print!("{}: ", text);
         io::stdout().flush().unwrap();
         io::stdin().read_line(&mut buf).unwrap();
-        buf = buf.trim_end_matches("\n").to_owned();
+        buf = buf.trim().to_owned();
         match buf.parse() {
             Ok(x) => return x,
             Err(e) => println!("Invalid {}: {}", text, e),
@@ -88,10 +89,12 @@ pub fn load() -> Config {
     if let Ok(conf) = load_from_file() {
         return conf;
     }
+    let sql_login = prompt("SQL login (steal from account_server.cfg, should start with DRIVER=)");
     let port = prompt("Port");
     let register_secret = prompt("Registration secret");
     let promote_secret = prompt("Promotion secret");
     let conf = Config {
+        sql_login,
         port,
         register_secret,
         promote_secret,

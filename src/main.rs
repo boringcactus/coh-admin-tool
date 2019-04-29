@@ -18,8 +18,9 @@ fn main() -> Result<(), odbc::DiagnosticRecord> {
     let sys = actix::System::new("coh-admin-tool");
 
     let conf = config::load();
+    let db_conf = conf.clone();
 
-    let addr = SyncArbiter::start(1, || db::Database::new().expect("Failed to connect to database"));
+    let addr = SyncArbiter::start(1, move || db::Database::new(&db_conf.clone()).expect("Failed to connect to database"));
 
     let server = http::Server::new(conf, addr);
     server.start();
