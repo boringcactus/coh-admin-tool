@@ -14,6 +14,7 @@ pub struct Config {
     pub port: u16,
     pub register_secret: String,
     pub promote_secret: String,
+    pub resetpw_secret: String,
 }
 
 #[derive(Debug)]
@@ -89,15 +90,18 @@ pub fn load() -> Config {
     if let Ok(conf) = load_from_file() {
         return conf;
     }
-    let sql_login = prompt("SQL login (steal from account_server.cfg, should start with DRIVER=)");
+    println!("Steal SQL login from account_server.cfg. Start with DRIVER= and end with ;, leave out the quotes.");
+    let sql_login = prompt("SQL login");
     let port = prompt("Port");
     let register_secret = prompt("Registration secret");
     let promote_secret = prompt("Promotion secret");
+    let resetpw_secret = prompt("Password reset secret");
     let conf = Config {
         sql_login,
         port,
         register_secret,
         promote_secret,
+        resetpw_secret,
     };
     let _ = save_to_file(&conf);
     conf

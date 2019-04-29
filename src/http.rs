@@ -5,7 +5,7 @@ use futures::Future;
 use serde::Deserialize;
 
 use crate::config::Config;
-use crate::db::{CreateUser, Database, PromoteUser};
+use crate::db::{CreateUser, Database, PromoteUser, ResetPassword};
 
 struct State {
     config: Config,
@@ -90,6 +90,40 @@ fn promote_user(req: &HttpRequest<State>) -> FutureResponse<HttpResponse> {
         .responder()
 }
 
+#[derive(Deserialize)]
+struct ResetPasswordFormData {
+    username: String,
+    password: String,
+    secret: String,
+}
+
+fn reset_password(req: &HttpRequest<State>) -> FutureResponse<HttpResponse> {
+    let req = req.clone();
+    Form::<ResetPasswordFormData>::extract(&req)
+        .and_then(move |data| {
+            let result: Box<dyn futures::Future<Item=_, Error=_>> = if data.secret == req.state().config.resetpw_secret {
+                Box::new(req.state().db.send(ResetPassword {
+                    username: data.username.clone(),
+                    password: data.password.clone(),
+                })
+                    .from_err()
+                    .and_then(|res| {
+                        match res {
+                            Ok(_) => Ok(HttpResponse::Ok().body("Successfully reset password")),
+                            Err(e) => {
+                                eprintln!("Error resetting password:\n    {:#?}", e);
+                                Ok(HttpResponse::InternalServerError().body("Failed to reset password"))
+                            }
+                        }
+                    }))
+            } else {
+                Box::new(futures::future::ok(HttpResponse::Unauthorized().body("Wrong secret!")))
+            };
+            result
+        })
+        .responder()
+}
+
 impl Server {
     pub fn new(config: Config, db: Addr<Database>) -> Server {
         Server {
@@ -106,6 +140,7 @@ impl Server {
             .resource("/", |r| r.f(index))
             .resource("/create-user", |r| r.method(Method::POST).a(create_user))
             .resource("/promote-user", |r| r.method(Method::POST).a(promote_user))
+            .resource("/reset-password", |r| r.method(Method::POST).a(reset_password))
     }
 
     pub fn start(self) {

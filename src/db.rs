@@ -168,6 +168,41 @@ impl Handler<PromoteUser> for Database {
     }
 }
 
+pub struct ResetPassword {
+    pub username: String,
+    pub password: String,
+}
+
+impl Message for ResetPassword {
+    type Result = odbc::Result<()>;
+}
+
+impl Handler<ResetPassword> for Database {
+    type Result = odbc::Result<()>;
+
+    fn handle(&mut self, msg: ResetPassword, _: &mut Self::Context) -> Self::Result {
+        let conn = self.connect()?;
+
+        let ref username = msg.username;
+        let ref password = msg.password;
+
+        let password = hash_password(username, password);
+
+        let stmt = odbc::Statement::with_parent(&conn)?;
+        let stmt = stmt.bind_parameter(1, &password)?;
+        let stmt = stmt.bind_parameter(2, username)?;
+        let sql = "UPDATE cohauth.dbo.user_auth SET password = CONVERT(BINARY(128), ?) WHERE account = ?;";
+        match stmt.exec_direct(sql)? {
+            odbc::NoData(_) => {} // things worked
+            odbc::Data(_) => {
+                panic!("insert returned data");
+            }
+        }
+
+        Ok(())
+    }
+}
+
 #[cfg(test)]
 mod tests {
     #[test]
