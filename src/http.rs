@@ -124,6 +124,21 @@ fn reset_password(req: &HttpRequest<State>) -> FutureResponse<HttpResponse> {
         .responder()
 }
 
+fn manifest(_req: &HttpRequest<State>) -> impl Responder {
+    use std::{io, fs, env};
+    let mut path = env::current_exe().unwrap();
+    path.set_file_name("manifest.xml");
+    match fs::read(path) {
+        Ok(data) => HttpResponse::Ok()
+            .content_type("text/xml")
+            .body(data),
+        Err(e) => match e.kind() {
+            io::ErrorKind::NotFound => HttpResponse::NotFound().into(),
+            _ => HttpResponse::InternalServerError().body("Error reading manifest.xml")
+        }
+    }
+}
+
 impl Server {
     pub fn new(config: Config, db: Addr<Database>) -> Server {
         Server {
@@ -141,6 +156,7 @@ impl Server {
             .resource("/create-user", |r| r.method(Method::POST).a(create_user))
             .resource("/promote-user", |r| r.method(Method::POST).a(promote_user))
             .resource("/reset-password", |r| r.method(Method::POST).a(reset_password))
+            .resource("/manifest.xml", |r| r.f(manifest))
     }
 
     pub fn start(self) {
