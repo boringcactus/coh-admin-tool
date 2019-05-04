@@ -13,6 +13,7 @@ mod http;
 mod db;
 
 fn main() -> Result<(), odbc::DiagnosticRecord> {
+    std::env::set_var("RUST_LOG", "actix_web=info,odbc");
     env_logger::init();
 
     let sys = actix::System::new("coh-admin-tool");

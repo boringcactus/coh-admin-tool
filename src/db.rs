@@ -168,6 +168,34 @@ impl Handler<PromoteUser> for Database {
     }
 }
 
+pub struct DemoteUser {
+    pub charname: String,
+}
+
+impl Message for DemoteUser {
+    type Result = odbc::Result<()>;
+}
+
+impl Handler<DemoteUser> for Database {
+    type Result = odbc::Result<()>;
+
+    fn handle(&mut self, msg: DemoteUser, _: &mut Self::Context) -> Self::Result {
+        let conn = self.connect()?;
+
+        let stmt = odbc::Statement::with_parent(&conn)?;
+        let stmt = stmt.bind_parameter(1, &msg.charname)?;
+        let sql = "UPDATE cohdb.dbo.Ents SET AccessLevel=NULL WHERE Name = ?;";
+        match stmt.exec_direct(sql)? {
+            odbc::NoData(_) => {} // things worked
+            odbc::Data(_) => {
+                panic!("insert returned data");
+            }
+        }
+
+        Ok(())
+    }
+}
+
 pub struct ResetPassword {
     pub username: String,
     pub password: String,

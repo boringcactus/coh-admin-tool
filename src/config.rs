@@ -14,6 +14,7 @@ pub struct Config {
     pub port: u16,
     pub register_secret: String,
     pub promote_secret: String,
+    pub demote_secret: String,
     pub resetpw_secret: String,
 }
 
@@ -95,12 +96,14 @@ pub fn load() -> Config {
     let port = prompt("Port");
     let register_secret = prompt("Registration secret");
     let promote_secret = prompt("Promotion secret");
+    let demote_secret = prompt("Demotion secret");
     let resetpw_secret = prompt("Password reset secret");
     let conf = Config {
         sql_login,
         port,
         register_secret,
         promote_secret,
+        demote_secret,
         resetpw_secret,
     };
     let _ = save_to_file(&conf);
